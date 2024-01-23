@@ -27,6 +27,7 @@ router.post("/login", (req, res) => {
   const password = req.body.password;
 
   database.getUserWithEmail(email).then((user) => {
+
     if (!user) {
       return res.send({ error: "no user with that id" });
     }
