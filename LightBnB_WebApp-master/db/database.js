@@ -1,14 +1,12 @@
-const { query } = require("express");
-const properties = require("./json/properties.json");
-const users = require("./json/users.json");
+require('dotenv').config();
 const { Pool } = require('pg');
 
-const pool = new Pool ({
-  user: 'jer',
-  host: 'localhost',
-  database: 'lightbnb',
-  password: 'blah1234',
-  port: 5432
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT
 });
 
 /// Users
@@ -18,13 +16,13 @@ const pool = new Pool ({
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithEmail = function (email) {
+const getUserWithEmail = function(email) {
   
   return pool
     .query(
       `SELECT * FROM users
       WHERE email = $1`,
-      [email?.toLowerCase()])
+      [email])
     .then((result) => {
       return result.rows[0];
     })
@@ -39,7 +37,7 @@ const getUserWithEmail = function (email) {
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithId = function (id) {
+const getUserWithId = function(id) {
   return pool
     .query(
       `SELECT * FROM users
@@ -58,7 +56,7 @@ const getUserWithId = function (id) {
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser = function (user) {
+const addUser = function(user) {
   const name = user.name;
   const password = user.password;
   const email = user.email;
@@ -84,7 +82,7 @@ const addUser = function (user) {
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-const getAllReservations = function (guest_id, limit = 10) {
+const getAllReservations = function(guest_id, limit = 10) {
   return pool
     .query(
       `SELECT * FROM reservations
@@ -108,7 +106,7 @@ const getAllReservations = function (guest_id, limit = 10) {
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
-const getAllProperties = function (options, limit = 10) {
+const getAllProperties = function(options, limit = 10) {
 
   const queryParams = [];
 
@@ -167,8 +165,6 @@ const getAllProperties = function (options, limit = 10) {
   LIMIT $${queryParams.length}
   `;
 
-  console.log("queryString", queryString, "queryParams:", queryParams);
-
   return pool.query(queryString, queryParams).then((res) => res.rows);
 
 };
@@ -179,7 +175,8 @@ const getAllProperties = function (options, limit = 10) {
  * @param {{}} property An object containing all of the property details.
  * @return {Promise<{}>} A promise to the property.
  */
-const addProperty = function (property) {
+const addProperty = function(property) {
+
   const owner_id = property.owner_id;
   const title = property.title;
   const description = property.description;
@@ -195,8 +192,6 @@ const addProperty = function (property) {
   const number_of_bathrooms = property.number_of_bathrooms;
   const number_of_bedrooms = property.number_of_bedrooms;
 
-  console.log('in the function', owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms);
-
   return pool.query(`
     INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
@@ -209,24 +204,6 @@ const addProperty = function (property) {
     });
 
 };
-
-// Property Object passed in:
-// {
-//   owner_id: int,
-//   title: string,
-//   description: string,
-//   thumbnail_photo_url: string,
-//   cover_photo_url: string,
-//   cost_per_night: string,
-//   street: string,
-//   city: string,
-//   province: string,
-//   post_code: string,
-//   country: string,
-//   parking_spaces: int,
-//   number_of_bathrooms: int,
-//   number_of_bedrooms: int
-// }
 
 module.exports = {
   getUserWithEmail,
