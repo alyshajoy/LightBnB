@@ -23,7 +23,7 @@ const getUserWithEmail = function (email) {
     .query(
       `SELECT * FROM users
       WHERE email = $1`,
-      [email])
+      [email?.toLocaleLowerCase])
     .then((result) => {
       return result.rows[0];
     })
@@ -84,7 +84,20 @@ const addUser = function (user) {
  * @return {Promise<[{}]>} A promise to the reservations.
  */
 const getAllReservations = function (guest_id, limit = 10) {
-  return getAllProperties(null, 2);
+  return pool
+    .query(
+      `SELECT * FROM reservations
+      JOIN properties ON property_id = properties.id
+      WHERE guest_id = $2
+      LIMIT $1`,
+      [limit, guest_id])
+    .then((result) => {
+      console.log(result.rows);
+      return result.rows;
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 /// Properties
